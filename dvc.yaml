@@ -1,0 +1,85 @@
+stages:
+  ingest:
+    cmd: python scripts/ingest_data.py
+    deps:
+      - scripts/ingest_data.py
+      - backend/core/data/ingestion.py
+    params:
+      - params.yaml:
+          - data.ticker
+          - data.period
+          - data.raw_dir
+    outs:
+      - data/raw:
+          cache: true
+          persist: true
+
+  preprocess:
+    cmd: python scripts/preprocess.py
+    deps:
+      - scripts/preprocess.py
+      - backend/core/data/preprocessing.py
+      - backend/core/data/features.py
+      - backend/core/data/validation.py
+      - data/raw
+    params:
+      - params.yaml:
+          - preprocessing.lookback
+          - preprocessing.test_split
+          - preprocessing.val_split
+          - preprocessing.scaler
+          - data.processed_dir
+          - data.features_dir
+    outs:
+      - data/processed:
+          cache: true
+      - data/features:
+          cache: true
+    metrics:
+      - data/drift_baseline.json:
+          cache: false
+
+  train:
+    cmd: python scripts/train.py
+    deps:
+      - scripts/train.py
+      - backend/core/models/lstm_predictor.py
+      - backend/core/models/xgboost_predictor.py
+      - backend/core/training/trainer.py
+      - data/features
+    params:
+      - params.yaml:
+          - train.model
+          - train.epochs
+          - train.batch_size
+          - train.lr
+          - train.lstm_units
+          - train.dropout
+          - train.patience
+          - preprocessing.lookback
+    outs:
+      - models/:
+          cache: true
+          persist: true
+    metrics:
+      - metrics/train_metrics.json:
+          cache: false
+
+  evaluate:
+    cmd: python scripts/evaluate.py
+    deps:
+      - scripts/evaluate.py
+      - backend/core/training/evaluator.py
+      - data/features
+      - models/
+    params:
+      - params.yaml:
+          - evaluate.metrics
+          - evaluate.drift_threshold
+    metrics:
+      - metrics/eval_metrics.json:
+          cache: false
+    plots:
+      - metrics/predictions.csv:
+          x: date
+          y: [actual, predicted]

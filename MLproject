@@ -1,0 +1,42 @@
+name: finhedge
+
+python_env: python_env.yaml
+
+entry_points:
+  ingest:
+    parameters:
+      ticker: {type: str, default: "AAPL"}
+      period:  {type: str, default: "2y"}
+    command: "python scripts/ingest_data.py --ticker {ticker} --period {period}"
+
+  preprocess:
+    parameters:
+      input_path:  {type: str, default: "data/raw"}
+      output_path: {type: str, default: "data/processed"}
+    command: "python scripts/preprocess.py --input {input_path} --output {output_path}"
+
+  train:
+    parameters:
+      model:       {type: str,   default: "lstm"}
+      ticker:      {type: str,   default: "AAPL"}
+      lookback:    {type: int,   default: 60}
+      epochs:      {type: int,   default: 50}
+      batch_size:  {type: int,   default: 32}
+      lr:          {type: float, default: 0.001}
+    command: >
+      python scripts/train.py
+        --model {model}
+        --ticker {ticker}
+        --lookback {lookback}
+        --epochs {epochs}
+        --batch_size {batch_size}
+        --lr {lr}
+
+  evaluate:
+    parameters:
+      model_uri: {type: str, default: "models:/finhedge-lstm/Production"}
+      ticker:    {type: str, default: "AAPL"}
+    command: "python scripts/evaluate.py --model_uri {model_uri} --ticker {ticker}"
+
+  main:
+    command: "python scripts/train.py"

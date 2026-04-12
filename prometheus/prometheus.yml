@@ -1,0 +1,32 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'finhedge'
+
+# ── Alerting rules ─────────────────────────────────────────────────────────
+rule_files:
+  - "alerts.yml"
+
+# ── Scrape targets ─────────────────────────────────────────────────────────
+scrape_configs:
+
+  # FastAPI backend – custom FinHedge metrics
+  - job_name: 'finhedge_backend'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['backend:8000']
+        labels:
+          service: 'backend'
+          app: 'finhedge'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node exporter (if deployed)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']

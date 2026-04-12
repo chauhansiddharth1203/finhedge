@@ -1,0 +1,31 @@
+# DVC pipeline parameters — edit here, DVC tracks changes
+data:
+  ticker: "AAPL"
+  period: "2y"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  features_dir: "data/features"
+
+preprocessing:
+  lookback: 60
+  test_split: 0.2
+  val_split: 0.1
+  scaler: "minmax"
+
+train:
+  model: "lstm"           # lstm | xgboost
+  epochs: 50
+  batch_size: 32
+  lr: 0.001
+  lstm_units: [64, 32]
+  dropout: 0.2
+  patience: 10            # early stopping
+
+evaluate:
+  metrics: ["rmse", "mae", "mape", "direction_acc", "sharpe"]
+  drift_threshold: 0.05   # KL-divergence threshold for retraining
+
+hedging:
+  confidence: 0.95        # CVaR confidence level
+  cost_rate: 0.0002       # transaction cost rate
+  hedge_horizon: 21       # trading days

@@ -1,0 +1,252 @@
+{
+  "id": null,
+  "uid": "finhedge",
+  "title": "FinHedge AI Monitoring",
+  "tags": ["finhedge", "mlops"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total Predictions",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "sum(finhedge_prediction_requests_total)",
+        "legendFormat": "Total"
+      }],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1000},
+              {"color": "red", "value": 10000}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Error Rate (%)",
+      "type": "stat",
+      "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "100 * rate(finhedge_prediction_errors_total[5m]) / (rate(finhedge_prediction_requests_total[5m]) + 0.001)",
+        "legendFormat": "Error %"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 2},
+              {"color": "red", "value": 5}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Model RMSE",
+      "type": "stat",
+      "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "finhedge_model_rmse",
+        "legendFormat": "{{ticker}} {{model}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 10}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Drift Alert",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "max(finhedge_drift_alert)",
+        "legendFormat": "Drift"
+      }],
+      "options": {"colorMode": "background"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {"type": "value", "options": {"0": {"text": "OK", "color": "green"}}},
+            {"type": "value", "options": {"1": {"text": "DRIFT!", "color": "red"}}}
+          ]
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Sharpe Ratio",
+      "type": "stat",
+      "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "finhedge_model_sharpe",
+        "legendFormat": "{{ticker}} {{model}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 0.5},
+              {"color": "green", "value": 1.0}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Prediction Request Rate",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "rate(finhedge_prediction_requests_total[1m])",
+        "legendFormat": "{{ticker}} {{model}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {"mode": "palette-classic"}
+        }
+      },
+      "options": {
+        "tooltip": {"mode": "multi"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      }
+    },
+    {
+      "id": 7,
+      "title": "Inference Latency (p50 / p90 / p99)",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(finhedge_prediction_latency_seconds_bucket[2m]))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.90, rate(finhedge_prediction_latency_seconds_bucket[2m]))",
+          "legendFormat": "p90"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(finhedge_prediction_latency_seconds_bucket[2m]))",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {"lineWidth": 2}
+        }
+      },
+      "options": {
+        "tooltip": {"mode": "multi"},
+        "legend": {"displayMode": "list", "placement": "bottom"}
+      }
+    },
+    {
+      "id": 8,
+      "title": "Data Drift Scores by Feature",
+      "type": "bargauge",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "finhedge_data_drift_score",
+        "legendFormat": "{{feature}}"
+      }],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "continuous-RdYlGn"},
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.03},
+              {"color": "red", "value": 0.05}
+            ]
+          },
+          "max": 0.2
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Hedge Actions Distribution",
+      "type": "piechart",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "datasource": "Prometheus",
+      "targets": [{
+        "expr": "finhedge_hedge_requests_total",
+        "legendFormat": "{{action}}"
+      }],
+      "options": {
+        "pieType": "donut",
+        "legend": {"displayMode": "list", "placement": "right"}
+      }
+    },
+    {
+      "id": 10,
+      "title": "Pipeline Run Status",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 20, "w": 24, "h": 6},
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(finhedge_pipeline_runs_total{status=\"success\"}[5m])",
+          "legendFormat": "{{stage}} success"
+        },
+        {
+          "expr": "rate(finhedge_pipeline_runs_total{status=\"failure\"}[5m])",
+          "legendFormat": "{{stage}} failure"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {"fillOpacity": 20}
+        },
+        "overrides": [{
+          "matcher": {"id": "byRegexp", "options": ".*failure"},
+          "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]
+        }]
+      }
+    }
+  ]
+}

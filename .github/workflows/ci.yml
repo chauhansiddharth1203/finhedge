@@ -1,0 +1,94 @@
+name: FinHedge CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install flake8 black isort
+
+      - name: Lint (flake8)
+        run: flake8 backend/ scripts/ --max-line-length=100 --ignore=E501,W503
+
+      - name: Format check (black)
+        run: black --check backend/ scripts/
+
+      - name: Import sort check (isort)
+        run: isort --check-only backend/ scripts/
+
+      - name: Unit tests
+        run: |
+          cd finhedge
+          pytest backend/tests/ -v --tb=short 2>&1 | tee test_report.txt
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: test_report.txt
+
+  dvc-pipeline:
+    name: DVC Pipeline Check
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install DVC
+        run: pip install dvc
+
+      - name: Check DVC pipeline status
+        run: |
+          cd finhedge
+          dvc dag --md    # print pipeline DAG in markdown
+          echo "DVC pipeline DAG verified."
+
+  docker-build:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: |
+          cd finhedge/backend
+          docker build -t finhedge-backend:ci .
+
+      - name: Build frontend image
+        run: |
+          cd finhedge/frontend
+          docker build -t finhedge-frontend:ci .
+
+      - name: Smoke test backend container
+        run: |
+          docker run -d --name backend_test -p 8000:8000 finhedge-backend:ci
+          sleep 10
+          curl -f http://localhost:8000/health || exit 1
+          docker stop backend_test
