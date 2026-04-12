@@ -45,17 +45,10 @@ services:
       - raw_data:/app/data/raw
       - processed_data:/app/data/processed
     depends_on:
-      mlflow:
-        condition: service_healthy
+      - mlflow
     networks:
       - finhedge_net
     logging: *default-logging
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # ── Frontend: Streamlit UI ─────────────────────────────────
   frontend:
@@ -72,8 +65,7 @@ services:
       - GRAFANA_URL=http://grafana:3000
       - AIRFLOW_URL=http://airflow:8080
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     networks:
       - finhedge_net
     logging: *default-logging
@@ -96,12 +88,6 @@ services:
     networks:
       - finhedge_net
     logging: *default-logging
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   # ── Apache Airflow (standalone) ────────────────────────────
   airflow:
