@@ -1,12 +1,8 @@
+# Airflow only needs lightweight packages for DAG orchestration
+# Heavy ML packages (torch, xgboost) run inside the backend container
 apache-airflow-providers-http==4.10.0
 yfinance==0.2.40
 pandas==2.2.2
 numpy==1.26.4
-scikit-learn==1.5.0
-torch==2.3.0
-xgboost==2.0.3
-mlflow==2.13.0
-pyarrow>=14.0,<16
-scipy==1.13.0
-matplotlib==3.9.0
 requests==2.32.2
+pyarrow>=14.0,<16

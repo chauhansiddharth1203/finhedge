@@ -4,7 +4,7 @@ uvicorn[standard]==0.29.0
 pydantic==2.7.1
 
 # ── ML / data ──────────────────────────────────────────────────────────────
-torch==2.3.0
+# torch installed separately in Dockerfile with CPU-only flag
 xgboost==2.0.3
 scikit-learn==1.5.0
 numpy==1.26.4

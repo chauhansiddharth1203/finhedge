@@ -3,7 +3,11 @@ FROM python:3.10-slim AS builder
 
 WORKDIR /build
 COPY requirements.txt .
+
+# Install CPU-only torch first (200MB vs 1.2GB GPU version)
 RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --prefix=/install \
+        torch==2.3.0 --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # ── Runtime stage ──────────────────────────────────────────────────────────
@@ -26,7 +30,6 @@ COPY config.py /app/backend/
 RUN mkdir -p /app/data/raw /app/data/processed /app/data/features \
              /app/models /app/logs /app/metrics
 
-# Set Python path so imports resolve correctly
 ENV PYTHONPATH=/app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
