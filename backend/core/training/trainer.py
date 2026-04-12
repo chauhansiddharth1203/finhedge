@@ -22,6 +22,7 @@ matplotlib.use("Agg")   # non-interactive backend
 import matplotlib.pyplot as plt
 import mlflow
 import mlflow.pytorch
+import mlflow.xgboost
 import numpy as np
 import pandas as pd
 
@@ -239,7 +240,6 @@ class Trainer:
         mlflow.log_artifact(str(model_path), artifact_path="model")
 
         # Log model with MLflow signature
-        import mlflow.pytorch
         mlflow.pytorch.log_model(
             predictor.model, artifact_path="model",
             registered_model_name=MODEL_NAME_LSTM,
