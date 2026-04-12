@@ -97,16 +97,30 @@ class StockDataIngester:
 
     def _download(self, ticker: str, period: str, interval: str) -> pd.DataFrame:
         """Call yfinance and return a raw DataFrame."""
+        data = None
+
+        # Primary: yf.Ticker().history() — more reliable inside Docker
         try:
-            data = yf.download(
-                ticker,
-                period=period,
-                interval=interval,
-                auto_adjust=True,
-                progress=False,
-            )
+            t = yf.Ticker(ticker)
+            data = t.history(period=period, interval=interval, auto_adjust=True)
+            if data is not None and not data.empty:
+                logger.info("yf.Ticker.history() succeeded for %s", ticker)
         except Exception as exc:
-            raise DataIngestionError(f"yfinance download failed for {ticker}: {exc}") from exc
+            logger.warning("yf.Ticker.history() failed for %s: %s", ticker, exc)
+            data = None
+
+        # Fallback: yf.download()
+        if data is None or data.empty:
+            try:
+                data = yf.download(
+                    ticker,
+                    period=period,
+                    interval=interval,
+                    auto_adjust=True,
+                    progress=False,
+                )
+            except Exception as exc:
+                raise DataIngestionError(f"yfinance download failed for {ticker}: {exc}") from exc
 
         if data is None or data.empty:
             raise DataIngestionError(f"yfinance returned empty data for {ticker}")

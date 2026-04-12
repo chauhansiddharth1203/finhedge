@@ -208,7 +208,7 @@ with tab2:
     st.plotly_chart(fig_drift, use_container_width=True)
 
     st.dataframe(
-        df_drift.style.background_gradient(subset=["KL Divergence"], cmap="RdYlGn_r"),
+        df_drift,
         use_container_width=True, hide_index=True,
     )
 

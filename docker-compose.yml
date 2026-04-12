@@ -48,6 +48,9 @@ services:
       - mlflow
     networks:
       - finhedge_net
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     logging: *default-logging
 
   # ── Frontend: Streamlit UI ─────────────────────────────────
