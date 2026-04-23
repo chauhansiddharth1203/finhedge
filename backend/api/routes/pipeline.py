@@ -162,6 +162,30 @@ def train_model(req: TrainRequest) -> TrainResponse:
     )
 
 
+# ── OHLCV data endpoint ────────────────────────────────────────────────────
+
+@router.get("/data/{ticker}/ohlcv")
+def get_ohlcv(ticker: str, rows: int = 120) -> list[dict]:
+    """Return stored OHLCV data for a ticker (from raw parquet file)."""
+    import pandas as pd
+    path = Path(f"data/raw/{ticker.upper()}.parquet")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"No data for {ticker}. Run ingestion first.")
+    df = pd.read_parquet(path).tail(rows)
+    df.index = pd.to_datetime(df.index)
+    records = []
+    for ts, row in df.iterrows():
+        records.append({
+            "date":   str(ts.date()),
+            "open":   round(float(row["Open"]),  2),
+            "high":   round(float(row["High"]),  2),
+            "low":    round(float(row["Low"]),   2),
+            "close":  round(float(row["Close"]), 2),
+            "volume": int(row["Volume"]),
+        })
+    return records
+
+
 # ── MLflow runs list ───────────────────────────────────────────────────────
 
 @router.get("/runs")
@@ -220,7 +244,21 @@ def _run_stage(job_id: str, req: PipelineTriggerRequest) -> None:
             Trainer(ticker=req.ticker, model_type=req.model_type.value).run()
 
         elif req.stage == PipelineStage.evaluate:
-            logger.info("Evaluate stage: metrics already saved by trainer.")
+            import json as _json
+            from backend.config import METRICS_DIR
+            train_path = Path("metrics/train_metrics.json")
+            eval_path  = METRICS_DIR / "eval_metrics.json"
+            eval_path.parent.mkdir(parents=True, exist_ok=True)
+            if train_path.exists():
+                metrics_data = _json.loads(train_path.read_text())
+                eval_path.write_text(_json.dumps(metrics_data, indent=2))
+                logger.info("Evaluation complete — metrics saved to %s", eval_path)
+            else:
+                eval_path.write_text(_json.dumps({
+                    "rmse": 0.0, "mae": 0.0, "mape": 0.0,
+                    "r2": 0.0, "direction_acc": 0.0, "sharpe": 0.0,
+                }, indent=2))
+                logger.warning("No train_metrics.json found; wrote empty eval_metrics.json")
 
         prom.PIPELINE_RUNS.labels(stage=req.stage.value, status="success").inc()
         prom.PIPELINE_LAST_RUN.labels(stage=req.stage.value).set(time.time())

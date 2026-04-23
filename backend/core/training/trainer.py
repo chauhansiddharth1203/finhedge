@@ -151,6 +151,10 @@ class Trainer:
             metrics_path.write_text(json.dumps({**params, **metrics}, indent=2))
             mlflow.log_artifact(str(metrics_path))
 
+            # Also write eval_metrics.json so pipeline status & prediction page can read it
+            eval_path = Path("metrics/eval_metrics.json")
+            eval_path.write_text(json.dumps(metrics, indent=2))
+
             # ── Register model ────────────────────────────────────────────
             model_name = MODEL_NAME_LSTM if self.model_type == "lstm" else MODEL_NAME_XGB
             mv = mlflow.register_model(
