@@ -1,6 +1,8 @@
 # FinHedge AI — User Manual
 
-*For non-technical users*
+**Author:** Siddharth Chauhan | Roll No: CH21B103
+**Course:** DA5402 — MLOps | IIT Madras
+**Contact:** ch21b103@smail.iitm.ac.in | +91 9518241509
 
 ---
 
@@ -164,6 +166,6 @@ This page shows you whether all the system components are working:
 | FinHedge UI | http://localhost:8501 | — |
 | API Documentation | http://localhost:8000/docs | — |
 | MLflow UI | http://localhost:5000 | — |
-| Airflow UI | http://localhost:8080 | admin / admin |
-| Grafana | http://localhost:3000 | admin / finhedge123 |
+| Airflow UI | http://localhost:8081 | admin / admin |
+| Grafana | http://localhost:3001 | admin / finhedge123 |
 | Prometheus | http://localhost:9090 | — |
