@@ -108,6 +108,22 @@ if run_btn:
             delta_pct = delta / data["current_price"] * 100
             direction = data["direction"]
 
+            # Build multi-day forecast (day 1 = LSTM, days 2+ = decaying projection)
+            daily_ret = (pred - data["current_price"]) / data["current_price"]
+            vol = data.get("volatility_1y", 0.02) / 16  # daily vol approx
+            forecast_prices, forecast_lbs, forecast_ubs, forecast_dates = [], [], [], []
+            base_date = pd.Timestamp(data["predictions"][0]["date"])
+            p = data["current_price"]
+            for d in range(1, horizon + 1):
+                decay = 0.65 ** (d - 1)
+                p = p * (1 + daily_ret * decay)
+                ci = p * vol * (d ** 0.5) * 1.65
+                fdate = base_date + pd.tseries.offsets.BDay(d - 1)
+                forecast_prices.append(round(p, 2))
+                forecast_lbs.append(round(p - ci, 2))
+                forecast_ubs.append(round(p + ci, 2))
+                forecast_dates.append(str(fdate.date()))
+
             # ── Key metrics ───────────────────────────────────────────────
             st.markdown(f"""
             <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;
@@ -162,27 +178,29 @@ if run_btn:
                         decreasing=dict(line=dict(color="#f43f5e"), fillcolor="#f43f5e"),
                     ), row=1, col=1)
 
-                    # Forecast star
-                    lb = data["predictions"][0]["lower_bound"]
-                    ub = data["predictions"][0]["upper_bound"]
-                    pred_date = data["predictions"][0]["date"]
-
+                    # Multi-day forecast line
                     fig.add_trace(go.Scatter(
-                        x=[pred_date], y=[pred],
-                        mode="markers+text",
-                        marker=dict(size=16, color="#f59e0b", symbol="star",
+                        x=forecast_dates, y=forecast_prices,
+                        mode="lines+markers",
+                        line=dict(color="#f59e0b", width=2, dash="dot"),
+                        marker=dict(size=10, color="#f59e0b",
                                     line=dict(color="#fff", width=1)),
-                        text=[f"  ${pred:.2f}"], textposition="middle right",
-                        textfont=dict(color="#f59e0b", size=12, family="Inter"),
+                        text=[f"${p:.2f}" for p in forecast_prices],
+                        textposition="top right",
+                        textfont=dict(color="#f59e0b", size=11),
                         name="Forecast",
+                        showlegend=True,
                     ), row=1, col=1)
 
-                    # Confidence interval vertical line
+                    # Confidence band
                     fig.add_trace(go.Scatter(
-                        x=[pred_date, pred_date], y=[lb, ub],
-                        mode="lines",
-                        line=dict(color="#f59e0b", dash="dot", width=2),
-                        name=f"90% CI (${lb:.2f}–${ub:.2f})",
+                        x=forecast_dates + forecast_dates[::-1],
+                        y=forecast_ubs + forecast_lbs[::-1],
+                        fill="toself",
+                        fillcolor="rgba(245,158,11,0.1)",
+                        line=dict(color="rgba(0,0,0,0)"),
+                        name="90% CI",
+                        showlegend=True,
                     ), row=1, col=1)
 
                     # Volume bars

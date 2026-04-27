@@ -14,6 +14,22 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Rename 'main' to 'Home' in sidebar
+st.markdown("""
+<script>
+(function() {
+    function rename() {
+        var links = document.querySelectorAll('[data-testid="stSidebarNavLink"] span p');
+        links.forEach(function(el) {
+            if (el.innerText === 'main') { el.innerText = 'Home'; }
+        });
+    }
+    var t = setInterval(rename, 300);
+    setTimeout(function(){ clearInterval(t); }, 8000);
+})();
+</script>
+""", unsafe_allow_html=True)
+
 # ── Global CSS — professional dark financial terminal ──────────────────────
 st.markdown("""
 <style>

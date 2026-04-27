@@ -15,9 +15,10 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-BACKEND_URL  = os.getenv("BACKEND_URL",  "http://localhost:8000")
-AIRFLOW_URL  = os.getenv("AIRFLOW_URL",  "http://localhost:8080")
-MLFLOW_URL   = os.getenv("MLFLOW_URL",   "http://localhost:5000")
+BACKEND_URL      = os.getenv("BACKEND_URL",  "http://localhost:8000")
+AIRFLOW_API_URL  = os.getenv("AIRFLOW_URL",  "http://localhost:8080")   # container-to-container
+AIRFLOW_LINK_URL = "http://localhost:8081"   # browser-facing URL
+MLFLOW_URL       = os.getenv("MLFLOW_URL",   "http://localhost:5000")
 
 AIRFLOW_AUTH = ("admin", "admin")
 
@@ -158,11 +159,12 @@ with tab1:
 
 with tab2:
     st.subheader("Airflow DAG Runs")
+    st.markdown(f"[Open Airflow UI →]({AIRFLOW_LINK_URL})  (login: admin / admin)")
     try:
         dag_ids = ["finhedge_data_ingestion", "finhedge_model_retraining"]
         for dag_id in dag_ids:
             r = requests.get(
-                f"{AIRFLOW_URL}/api/v1/dags/{dag_id}/dagRuns?limit=5&order_by=-execution_date",
+                f"{AIRFLOW_API_URL}/api/v1/dags/{dag_id}/dagRuns?limit=5&order_by=-execution_date",
                 auth=AIRFLOW_AUTH, timeout=5,
             )
             if r.status_code == 200:
@@ -189,11 +191,8 @@ with tab2:
             else:
                 st.info(f"Airflow DAG `{dag_id}` not found or Airflow is offline.")
     except Exception:
-        st.info("Airflow is not reachable. Start it via `docker-compose up airflow`.")
-        st.markdown(
-            f"[Open Airflow UI ↗]({AIRFLOW_URL})",
-            unsafe_allow_html=False,
-        )
+        st.info("Airflow DAG history unavailable - but Airflow is running.")
+        st.markdown(f"[Open Airflow UI →]({AIRFLOW_LINK_URL})  (admin / admin)")
 
 with tab3:
     st.subheader("MLflow Experiment Runs")

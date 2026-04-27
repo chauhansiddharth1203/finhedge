@@ -40,7 +40,7 @@ border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
 </div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["Overview", "ML Models", "MLOps Stack", "How to Use"])
+tab1, tab2, tab3, tab4 = st.tabs(["Project", "ML Models", "MLOps Stack", "How to Use"])
 
 # ── Tab 1: Overview ────────────────────────────────────────────────────────
 with tab1:
