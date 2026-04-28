@@ -197,7 +197,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "continuous-RdYlGn"},
+          "color": {"mode": "continuous-GrYlRd"},
           "thresholds": {
             "steps": [
               {"color": "green", "value": null},
