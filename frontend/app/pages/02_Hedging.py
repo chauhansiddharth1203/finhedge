@@ -99,58 +99,168 @@ if hedge_btn:
             col_left, col_right = st.columns([2, 1])
 
             with col_left:
-                # ── Gauge chart for hedge ratio ───────────────────────────
+                # ── Gauge ─────────────────────────────────────────────────
                 fig_gauge = go.Figure(go.Indicator(
                     mode="gauge+number+delta",
                     value=rec["hedge_ratio"],
-                    delta={"reference": 0, "valueformat": ".3f"},
+                    delta={
+                        "reference": rec["delta_hedge_ref"],
+                        "valueformat": ".3f",
+                        "increasing": {"color": "#10b981"},
+                        "decreasing": {"color": "#f43f5e"},
+                        "prefix": "vs BS delta: ",
+                    },
                     gauge={
-                        "axis":  {"range": [-1, 1], "tickwidth": 1},
-                        "bar":   {"color": banner_colour},
+                        "axis": {
+                            "range": [-1, 1],
+                            "tickwidth": 1,
+                            "tickcolor": "#475569",
+                            "tickvals": [-1, -0.5, 0, 0.5, 1],
+                            "ticktext": ["-1<br>Full Short", "-0.5", "0<br>No Hedge", "+0.5", "+1<br>Full Long"],
+                            "tickfont": {"color": "#94a3b8", "size": 10},
+                        },
+                        "bar":   {"color": banner_colour, "thickness": 0.25},
+                        "bgcolor": "#0d1320",
+                        "bordercolor": "#1e293b",
                         "steps": [
-                            {"range": [-1, -0.05], "color": "#ffcccc"},
-                            {"range": [-0.05, 0.05], "color": "#f0f0f0"},
-                            {"range": [0.05,  1],   "color": "#ccffcc"},
+                            {"range": [-1,    -0.33], "color": "rgba(244,63,94,0.25)"},
+                            {"range": [-0.33,  0.33], "color": "rgba(100,116,139,0.15)"},
+                            {"range": [ 0.33,  1   ], "color": "rgba(16,185,129,0.25)"},
                         ],
                         "threshold": {
-                            "line":  {"color": "black", "width": 3},
-                            "thickness": 0.8,
-                            "value": rec["delta_hedge_ref"],
+                            "line":      {"color": "#f59e0b", "width": 3},
+                            "thickness": 0.85,
+                            "value":     rec["delta_hedge_ref"],
                         },
                     },
-                    title={"text": "Hedge Ratio (−1=full short  0=no hedge  +1=full long)"},
-                    number={"suffix": "  (deep model)", "valueformat": ".4f"},
+                    title={
+                        "text": f"CVaR Hedge Ratio — {ticker}<br><span style='font-size:0.75em;color:#64748b'>Yellow marker = Black-Scholes delta reference</span>",
+                        "font": {"color": "#f1f5f9", "size": 14},
+                    },
+                    number={
+                        "font":        {"color": banner_colour, "size": 36},
+                        "valueformat": ".4f",
+                    },
                 ))
-                fig_gauge.update_layout(height=300)
+                fig_gauge.update_layout(
+                    height=310,
+                    paper_bgcolor="#111827",
+                    font=dict(color="#94a3b8"),
+                    margin=dict(l=20, r=20, t=60, b=10),
+                )
                 st.plotly_chart(fig_gauge, use_container_width=True)
 
-                # ── P&L Simulation ────────────────────────────────────────
-                st.subheader("Simulated Hedged vs Unhedged P&L")
-                moves = np.linspace(-0.10, 0.10, 200)
-                pos_value     = current_price * position_size
-                unhedged_pnl  = moves * pos_value
-                hedge_pnl     = -rec["hedge_ratio"] * rec["hedge_quantity"] * current_price * moves
-                hedged_pnl    = unhedged_pnl + hedge_pnl - rec["cost_estimate"]
+                # ── P&L Chart ─────────────────────────────────────────────
+                moves        = np.linspace(-0.12, 0.12, 400)
+                pos_value    = current_price * position_size
+                unhedged_pnl = moves * pos_value
+                hedge_pnl    = -rec["hedge_ratio"] * rec["hedge_quantity"] * current_price * moves
+                hedged_pnl   = unhedged_pnl + hedge_pnl - rec["cost_estimate"]
+                pred_x       = predicted_ret * 100
+                pred_u       = float(np.interp(predicted_ret, moves, unhedged_pnl))
+                pred_h       = float(np.interp(predicted_ret, moves, hedged_pnl))
 
                 fig_pnl = go.Figure()
+
+                # Loss zone shading
+                fig_pnl.add_hrect(
+                    y0=min(min(unhedged_pnl), min(hedged_pnl)), y1=0,
+                    fillcolor="rgba(244,63,94,0.05)", line_width=0,
+                    annotation_text="Loss Zone", annotation_position="bottom left",
+                    annotation_font_color="#f43f5e", annotation_font_size=10,
+                )
+                # Profit zone shading
+                fig_pnl.add_hrect(
+                    y0=0, y1=max(max(unhedged_pnl), max(hedged_pnl)),
+                    fillcolor="rgba(16,185,129,0.05)", line_width=0,
+                    annotation_text="Profit Zone", annotation_position="top left",
+                    annotation_font_color="#10b981", annotation_font_size=10,
+                )
+
+                # Unhedged line
                 fig_pnl.add_trace(go.Scatter(
                     x=moves * 100, y=unhedged_pnl,
-                    name="Unhedged", line=dict(color="#dc3545", width=2),
+                    fill="tozeroy",
+                    fillcolor="rgba(244,63,94,0.10)",
+                    line=dict(color="#f43f5e", width=2.5),
+                    name="Unhedged Position",
+                    hovertemplate="Move: %{x:.1f}%<br>P&L: $%{y:,.0f}<extra>Unhedged</extra>",
                 ))
+
+                # Hedged line
                 fig_pnl.add_trace(go.Scatter(
                     x=moves * 100, y=hedged_pnl,
-                    name="Hedged", line=dict(color="#28a745", width=2, dash="dash"),
+                    fill="tozeroy",
+                    fillcolor="rgba(16,185,129,0.10)",
+                    line=dict(color="#10b981", width=2.5),
+                    name="Hedged (CVaR-Optimal)",
+                    hovertemplate="Move: %{x:.1f}%<br>P&L: $%{y:,.0f}<extra>Hedged</extra>",
                 ))
-                fig_pnl.add_hline(y=0, line_dash="dot", line_color="gray")
-                fig_pnl.add_vline(x=predicted_ret * 100, line_dash="dash",
-                                  line_color="#667eea", annotation_text="Predicted")
+
+                # Breakeven line
+                fig_pnl.add_hline(
+                    y=0, line_color="#334155", line_width=1.5, line_dash="solid",
+                )
+
+                # Predicted return vertical
+                fig_pnl.add_vline(
+                    x=pred_x, line_dash="dash", line_color="#f59e0b", line_width=2,
+                )
+                fig_pnl.add_annotation(
+                    x=pred_x, y=max(pred_u, pred_h),
+                    text=f"Predicted<br>{pred_x:+.1f}%",
+                    showarrow=True, arrowhead=2, arrowcolor="#f59e0b",
+                    font=dict(color="#f59e0b", size=11),
+                    bgcolor="#111827", bordercolor="#f59e0b", borderwidth=1,
+                )
+
+                # Mark predicted P&L dots
+                fig_pnl.add_trace(go.Scatter(
+                    x=[pred_x], y=[pred_u],
+                    mode="markers",
+                    marker=dict(size=10, color="#f43f5e", symbol="circle",
+                                line=dict(color="#fff", width=2)),
+                    name=f"Unhedged P&L at forecast: ${pred_u:,.0f}",
+                    showlegend=True,
+                ))
+                fig_pnl.add_trace(go.Scatter(
+                    x=[pred_x], y=[pred_h],
+                    mode="markers",
+                    marker=dict(size=10, color="#10b981", symbol="circle",
+                                line=dict(color="#fff", width=2)),
+                    name=f"Hedged P&L at forecast: ${pred_h:,.0f}",
+                    showlegend=True,
+                ))
+
                 fig_pnl.update_layout(
-                    xaxis_title="Stock Move (%)",
-                    yaxis_title="P&L ($)",
-                    height=350,
-                    plot_bgcolor="white",
-                    paper_bgcolor="white",
-                    legend=dict(orientation="h"),
+                    title=dict(
+                        text=f"<b>P&L Simulation — {ticker}</b>  |  Position: {position_size} shares @ ${current_price:.2f}",
+                        font=dict(color="#f1f5f9", size=13),
+                        x=0,
+                    ),
+                    plot_bgcolor="#0d1320",
+                    paper_bgcolor="#111827",
+                    font=dict(color="#94a3b8", size=12),
+                    height=380,
+                    margin=dict(l=10, r=10, t=50, b=10),
+                    xaxis=dict(
+                        title=dict(text="Stock Price Move (%)", font=dict(color="#64748b", size=11)),
+                        gridcolor="#1e293b", zeroline=False,
+                        tickcolor="#334155", tickfont=dict(color="#64748b"),
+                        ticksuffix="%",
+                    ),
+                    yaxis=dict(
+                        title=dict(text="Profit / Loss (USD)", font=dict(color="#64748b", size=11)),
+                        gridcolor="#1e293b", zeroline=False,
+                        tickcolor="#334155", tickfont=dict(color="#64748b"),
+                        tickprefix="$", tickformat=",.0f",
+                    ),
+                    legend=dict(
+                        orientation="v", x=1.01, y=1,
+                        bgcolor="#111827", bordercolor="#1e293b", borderwidth=1,
+                        font=dict(color="#94a3b8", size=10),
+                    ),
+                    hovermode="x unified",
                 )
                 st.plotly_chart(fig_pnl, use_container_width=True)
 
