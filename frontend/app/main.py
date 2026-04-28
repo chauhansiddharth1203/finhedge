@@ -10,6 +10,17 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+st.markdown("""
+<style>
+.main .block-container {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+section[data-testid="stSidebar"] { border-right: 1px solid #1e293b !important; }
+</style>
+""", unsafe_allow_html=True)
+
 pg = st.navigation([
     st.Page("pages/home.py",          title="Home",       default=True),
     st.Page("pages/01_Prediction.py", title="Prediction"),

@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 BACKEND_URL    = os.getenv("BACKEND_URL",  "http://localhost:8000")
-PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9090")
+PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
 GRAFANA_URL    = "http://localhost:3001"   # browser-facing host port
 
 st.markdown("## 📡 Live Monitoring")
@@ -81,8 +81,8 @@ with tab1:
     # ── Metric cards ──────────────────────────────────────────────────────
     col1, col2, col3, col4 = st.columns(4)
 
-    total_preds = prom_query(f'finhedge_prediction_requests_total{{ticker="{ticker}"}}')
-    total_errors = prom_query(f'finhedge_prediction_errors_total{{ticker="{ticker}"}}')
+    total_preds = prom_query(f'sum(finhedge_prediction_requests_total{{ticker="{ticker}"}})')
+    total_errors = prom_query(f'sum(finhedge_prediction_errors_total{{ticker="{ticker}"}})')
     rmse = prom_query(f'finhedge_model_rmse{{ticker="{ticker}",model="lstm"}}')
     sharpe = prom_query(f'finhedge_model_sharpe{{ticker="{ticker}",model="lstm"}}')
 
@@ -113,7 +113,7 @@ with tab1:
                 mode="lines", fill="tozeroy",
                 line=dict(color="#667eea"),
             ))
-            fig.update_layout(height=250, plot_bgcolor="white", paper_bgcolor="white",
+            fig.update_layout(height=250, plot_bgcolor="#0d1320", paper_bgcolor="#111827",
                               xaxis_title="Time", yaxis_title="Req/s")
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -138,7 +138,7 @@ with tab1:
             perc_data, x="Percentile", y="Latency (s)",
             color="Percentile", color_discrete_sequence=["#28a745", "#ffc107", "#dc3545"],
         )
-        fig_lat.update_layout(height=250, plot_bgcolor="white", paper_bgcolor="white",
+        fig_lat.update_layout(height=250, plot_bgcolor="#0d1320", paper_bgcolor="#111827",
                                showlegend=False)
         fig_lat.add_hline(y=0.2, line_dash="dash", line_color="red",
                           annotation_text="200ms SLA")
@@ -203,7 +203,7 @@ with tab2:
     )
     fig_drift.add_vline(x=0.05, line_dash="dash", line_color="red",
                         annotation_text="Drift Threshold (0.05)")
-    fig_drift.update_layout(height=400, plot_bgcolor="white", paper_bgcolor="white")
+    fig_drift.update_layout(height=400, plot_bgcolor="#0d1320", paper_bgcolor="#111827")
     st.plotly_chart(fig_drift, use_container_width=True)
 
     st.dataframe(

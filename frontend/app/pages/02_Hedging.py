@@ -146,7 +146,7 @@ if hedge_btn:
                     height=310,
                     paper_bgcolor="#111827",
                     font=dict(color="#94a3b8"),
-                    margin=dict(l=20, r=20, t=60, b=10),
+                    margin=dict(l=20, r=20, t=90, b=10),
                 )
                 st.plotly_chart(fig_gauge, use_container_width=True)
 
@@ -241,8 +241,8 @@ if hedge_btn:
                     plot_bgcolor="#0d1320",
                     paper_bgcolor="#111827",
                     font=dict(color="#94a3b8", size=12),
-                    height=380,
-                    margin=dict(l=10, r=10, t=50, b=10),
+                    height=400,
+                    margin=dict(l=10, r=10, t=50, b=80),
                     xaxis=dict(
                         title=dict(text="Stock Price Move (%)", font=dict(color="#64748b", size=11)),
                         gridcolor="#1e293b", zeroline=False,
@@ -256,8 +256,8 @@ if hedge_btn:
                         tickprefix="$", tickformat=",.0f",
                     ),
                     legend=dict(
-                        orientation="v", x=1.01, y=1,
-                        bgcolor="#111827", bordercolor="#1e293b", borderwidth=1,
+                        orientation="h", x=0, y=-0.18,
+                        bgcolor="rgba(0,0,0,0)",
                         font=dict(color="#94a3b8", size=10),
                     ),
                     hovermode="x unified",
