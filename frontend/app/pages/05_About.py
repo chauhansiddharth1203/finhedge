@@ -18,7 +18,7 @@ st.markdown("""
 <div style="padding:1rem 0 1.25rem 0;border-bottom:1px solid #1e293b;margin-bottom:1.5rem;">
     <div style="font-size:1.4rem;font-weight:700;color:#f1f5f9;letter-spacing:-0.02em;">About FinHedge</div>
     <div style="font-size:0.8rem;color:#64748b;margin-top:0.2rem;">
-        Project Report · DA5402 MLOps · IIT Madras
+        Project · DA5402 MLOps · IIT Madras
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -33,7 +33,7 @@ border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
         IIT Madras<br>
         Email: <span style="color:#94a3b8;font-weight:500;">ch21b103@smail.iitm.ac.in</span> &nbsp;·&nbsp;
         Phone: <span style="color:#94a3b8;font-weight:500;">+91 9518241509</span><br>
-        Course: <span style="color:#94a3b8;font-weight:500;">DA5402 — MLOps</span> &nbsp;·&nbsp;
+        Course: <span style="color:#94a3b8;font-weight:500;">DA5402 - MLOps</span> &nbsp;·&nbsp;
         April 2026
     </div>
 </div>
