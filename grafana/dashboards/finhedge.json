@@ -188,7 +188,8 @@
       "datasource": "Prometheus",
       "targets": [{
         "expr": "finhedge_data_drift_score",
-        "legendFormat": "{{feature}}"
+        "legendFormat": "{{feature}}",
+        "instant": true
       }],
       "options": {
         "orientation": "horizontal",
