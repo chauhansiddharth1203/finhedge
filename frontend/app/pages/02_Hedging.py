@@ -14,7 +14,6 @@ import numpy as np
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
-st.set_page_config(page_title="Hedging | FinHedge", page_icon="🛡️", layout="wide")
 
 st.markdown("## 🛡️ Deep Hedging Recommendation")
 st.caption("CVaR-optimal hedge ratio powered by a deep MLP policy network.")

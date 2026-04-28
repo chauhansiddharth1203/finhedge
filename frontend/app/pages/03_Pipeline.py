@@ -22,7 +22,6 @@ MLFLOW_URL       = os.getenv("MLFLOW_URL",   "http://localhost:5000")
 
 AIRFLOW_AUTH = ("admin", "admin")
 
-st.set_page_config(page_title="Pipeline | FinHedge", page_icon="⚙️", layout="wide")
 st.markdown("## ⚙️ ML Pipeline Console")
 st.caption("Monitor and control the end-to-end FinHedge pipeline.")
 

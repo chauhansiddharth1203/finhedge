@@ -21,7 +21,6 @@ BACKEND_URL    = os.getenv("BACKEND_URL",  "http://localhost:8000")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9090")
 GRAFANA_URL    = "http://localhost:3001"   # browser-facing host port
 
-st.set_page_config(page_title="Monitoring | FinHedge", page_icon="📡", layout="wide")
 st.markdown("## 📡 Live Monitoring")
 st.caption("Real-time model performance, data drift, and infrastructure metrics.")
 

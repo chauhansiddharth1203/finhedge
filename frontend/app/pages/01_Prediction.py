@@ -11,7 +11,6 @@ from plotly.subplots import make_subplots
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
-st.set_page_config(page_title="Prediction | FinHedge", page_icon="📈", layout="wide")
 
 st.markdown("""
 <style>
