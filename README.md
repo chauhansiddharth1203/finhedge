@@ -1,4 +1,4 @@
-# FinHedge AI 📈
+# FinHedge AI 
 
 **Stock Price Forecasting & Portfolio Hedging Platform**  
 DA5402 MLOps | IIT Madras | April 2026  
