@@ -152,6 +152,18 @@ def train_model(req: TrainRequest) -> TrainResponse:
     duration = time.time() - t0
     prom.TRAINING_DURATION.labels(ticker=req.ticker, model=req.model_type.value).observe(duration)
 
+    # ── Update model performance gauges ──────────────────────────────────
+    m = result.get("metrics", {})
+    if m.get("rmse"):
+        prom.MODEL_RMSE.labels(ticker=req.ticker, model=req.model_type.value).set(m["rmse"])
+    if m.get("sharpe"):
+        prom.MODEL_SHARPE.labels(ticker=req.ticker, model=req.model_type.value).set(m["sharpe"])
+    if m.get("direction_acc"):
+        prom.MODEL_DIRECTION_ACC.labels(ticker=req.ticker, model=req.model_type.value).set(m["direction_acc"])
+    prom.MODEL_VERSION.labels(ticker=req.ticker, model=req.model_type.value).set(result.get("version", 1))
+    # Simple drift check: set alert to 0 (no drift) after fresh training
+    prom.DRIFT_ALERT.labels(ticker=req.ticker).set(0)
+
     return TrainResponse(
         run_id=result["run_id"],
         model_name=result["model_name"],
