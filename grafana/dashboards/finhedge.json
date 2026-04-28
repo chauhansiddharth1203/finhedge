@@ -43,12 +43,14 @@
       "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
       "datasource": "Prometheus",
       "targets": [{
-        "expr": "100 * rate(finhedge_prediction_errors_total[5m]) / (rate(finhedge_prediction_requests_total[5m]) + 0.001)",
+        "expr": "100 * sum(rate(finhedge_prediction_errors_total[5m])) / (sum(rate(finhedge_prediction_requests_total[5m])) + 0.001)",
         "legendFormat": "Error %"
       }],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "noValue": "0%"},
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
+          "noValue": "0",
           "color": {"mode": "thresholds"},
           "thresholds": {
             "steps": [
