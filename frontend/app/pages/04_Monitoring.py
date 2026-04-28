@@ -113,8 +113,13 @@ with tab1:
                 mode="lines", fill="tozeroy",
                 line=dict(color="#667eea"),
             ))
-            fig.update_layout(height=250, plot_bgcolor="#0d1320", paper_bgcolor="#111827",
-                              xaxis_title="Time", yaxis_title="Req/s")
+            fig.update_layout(
+                height=250, plot_bgcolor="#0d1320", paper_bgcolor="#111827",
+                font=dict(color="#94a3b8"),
+                xaxis=dict(title="Time", gridcolor="#1e293b", color="#64748b"),
+                yaxis=dict(title="Req/s", gridcolor="#1e293b", color="#64748b"),
+                margin=dict(l=10, r=10, t=20, b=10),
+            )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No prediction traffic yet. Run some predictions to see data.")
@@ -138,8 +143,13 @@ with tab1:
             perc_data, x="Percentile", y="Latency (s)",
             color="Percentile", color_discrete_sequence=["#28a745", "#ffc107", "#dc3545"],
         )
-        fig_lat.update_layout(height=250, plot_bgcolor="#0d1320", paper_bgcolor="#111827",
-                               showlegend=False)
+        fig_lat.update_layout(
+            height=250, plot_bgcolor="#0d1320", paper_bgcolor="#111827",
+            showlegend=False, font=dict(color="#94a3b8"),
+            xaxis=dict(gridcolor="#1e293b", color="#64748b"),
+            yaxis=dict(gridcolor="#1e293b", color="#64748b"),
+            margin=dict(l=10, r=10, t=20, b=10),
+        )
         fig_lat.add_hline(y=0.2, line_dash="dash", line_color="red",
                           annotation_text="200ms SLA")
         st.plotly_chart(fig_lat, use_container_width=True)
