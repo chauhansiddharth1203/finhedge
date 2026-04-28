@@ -280,3 +280,23 @@ def _run_stage(job_id: str, req: PipelineTriggerRequest) -> None:
         logger.exception("Stage %s failed for job %s", req.stage.value, job_id)
         prom.PIPELINE_RUNS.labels(stage=req.stage.value, status="failure").inc()
         _jobs[job_id].update({"status": "failed", "error": str(exc)})
+
+
+# ── Drift simulation endpoint ───────────────────────────────────────────────
+@router.post("/drift/compute")
+def compute_drift(ticker: str = "AAPL"):
+    """Set simulated drift scores for all features (for demo/monitoring)."""
+    import random, math
+    features = [
+        "rsi_14", "macd", "bb_width", "hist_vol_20", "vol_ma_ratio",
+        "return_1d", "ret_mean_5", "ret_std_20", "atr_14", "roc_10",
+    ]
+    scores = {}
+    for f in features:
+        score = round(random.uniform(0.002, 0.035), 4)
+        prom.DATA_DRIFT_SCORE.labels(ticker=ticker, feature=f).set(score)
+        scores[f] = score
+    max_score = max(scores.values())
+    alert = 1 if max_score > 0.05 else 0
+    prom.DRIFT_ALERT.labels(ticker=ticker).set(alert)
+    return {"ticker": ticker, "scores": scores, "alert": alert}
