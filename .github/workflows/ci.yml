@@ -37,7 +37,6 @@ jobs:
 
       - name: Unit tests
         run: |
-          cd finhedge
           pytest backend/tests/ -v --tb=short 2>&1 | tee test_report.txt
 
       - name: Upload test report
@@ -64,7 +63,6 @@ jobs:
 
       - name: Check DVC pipeline status
         run: |
-          cd finhedge
           dvc dag --md    # print pipeline DAG in markdown
           echo "DVC pipeline DAG verified."
 
@@ -78,12 +76,12 @@ jobs:
 
       - name: Build backend image
         run: |
-          cd finhedge/backend
+          cd backend
           docker build -t finhedge-backend:ci .
 
       - name: Build frontend image
         run: |
-          cd finhedge/frontend
+          cd frontend
           docker build -t finhedge-frontend:ci .
 
       - name: Smoke test backend container
